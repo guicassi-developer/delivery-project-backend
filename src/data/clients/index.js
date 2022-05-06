@@ -47,14 +47,15 @@ const createClient = async (clientdata) => {
                 @cpf,
                 @nrPhone
             )`;
+
         const insertclient = await pool.request()
-                            .input('FIRST_NAME', sql.NVarChar(50), clientdata.firstName)
-                            .input('SURNAME', sql.NVarChar(50), clientdata.surname)
-                            .input('DATE_NASC', sql.DateTime, new Date(clientdata.dateNasc).getTime())
-                            .input('EMAIL', sql.NVarChar(50), clientdata.email)
-                            .input('PASSWORD', sql.NVarChar(50), clientdata.password)
-                            .input('CPF', sql.Int, clientdata.cpf)
-                            .input('NR_PHONE', sql.Int, clientdata.nrPhone)
+                            .input('firstName', sql.NVarChar(50), clientdata.firstName)
+                            .input('surname', sql.NVarChar(50), clientdata.surname)
+                            .input('dateNasc', sql.DateTime, new Date(clientdata.dateNasc))
+                            .input('email', sql.NVarChar(50), clientdata.email)
+                            .input('password', sql.NVarChar(50), clientdata.password)
+                            .input('cpf', sql.Numeric, clientdata.cpf)
+                            .input('nrPhone', sql.Numeric, clientdata.nrPhone)
                             .query(query);                            
         return insertclient.recordset;
     } catch (error) {
@@ -74,15 +75,16 @@ const updateClient = async (clientId, data) => {
                 NR_PHONE=@cpf,
                 CPF=@nrPhone
             WHERE ID_CLIENT=@clientId`;
+            
         const update = await pool.request()
-                        .input('FIRST_NAME', sql.NVarChar(50), clientdata.firstName)
-                        .input('SURNAME', sql.NVarChar(50), clientdata.surname)
-                        .input('DATE_NASC', sql.DateTime, new Date(clientdata.dateNasc).getTime())
-                        .input('EMAIL', sql.NVarChar(50), clientdata.email)
-                        .input('PASSWORD', sql.NVarChar(50), clientdata.password)
-                        .input('CPF', sql.Int, clientdata.cpf)
-                        .input('NR_PHONE', sql.Int, clientdata.nrPhone)
-                        .query(query);     
+                        .input('firstName', sql.NVarChar(50), clientdata.firstName)
+                        .input('surname', sql.NVarChar(50), clientdata.surname)
+                        .input('dateNasc', sql.DateTime, new Date(clientdata.dateNasc))
+                        .input('email', sql.NVarChar(50), clientdata.email)
+                        .input('password', sql.NVarChar(50), clientdata.password)
+                        .input('cpf', sql.Numeric, clientdata.cpf)
+                        .input('nrPhone', sql.Numeric, clientdata.nrPhone)
+                        .query(query);  
         return update.recordset;
     } catch (error) {
         return error.message;
