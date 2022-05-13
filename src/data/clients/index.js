@@ -1,5 +1,6 @@
 const config = require('../../config');
 const sql = require('mssql');
+const bcrypt = require('bcrypt');
 
 const getAllClients = async () => {
     try {
@@ -28,7 +29,13 @@ const getById = async(clientId) => {
 const createClient = async (clientdata) => {
     try {
         let pool = await sql.connect(config.sql);
-        const query = `INSERT INTO 
+
+        const clientExist = await pool.request()
+                            .input('email', sql.NVarChar(50), clientdata.email)
+                            .query(`SELECT * FROM TB_CLIENT_INFO WHERE EMAIL = @email`);
+
+        if (clientExist.recordset.length === 0) {
+            const query = `INSERT INTO 
             TB_CLIENT_INFO (
                 FIRST_NAME,
                 SURNAME,
@@ -48,16 +55,23 @@ const createClient = async (clientdata) => {
                 @nrPhone
             )`;
 
-        const insertclient = await pool.request()
-                            .input('firstName', sql.NVarChar(50), clientdata.firstName)
-                            .input('surname', sql.NVarChar(50), clientdata.surname)
-                            .input('dateNasc', sql.DateTime, new Date(clientdata.dateNasc))
-                            .input('email', sql.NVarChar(50), clientdata.email)
-                            .input('password', sql.NVarChar(50), clientdata.password)
-                            .input('cpf', sql.Numeric, clientdata.cpf)
-                            .input('nrPhone', sql.Numeric, clientdata.nrPhone)
-                            .query(query);                            
-        return insertclient.recordset;
+            const hashedPassword = await bcrypt.hash(clientdata.password, 10);
+
+            console.log(hashedPassword);
+
+            const insertclient = await pool.request()
+                                .input('firstName', sql.NVarChar(50), clientdata.firstName)
+                                .input('surname', sql.NVarChar(50), clientdata.surname)
+                                .input('dateNasc', sql.DateTime, new Date(clientdata.dateNasc))
+                                .input('email', sql.NVarChar(50), clientdata.email)
+                                .input('password', sql.NVarChar(200), hashedPassword)
+                                .input('cpf', sql.Numeric, clientdata.cpf)
+                                .input('nrPhone', sql.Numeric, clientdata.nrPhone)
+                                .query(query);                            
+            return insertclient.recordset;
+        } else {
+            throw new Error('Email already used');
+        }
     } catch (error) {
         return error.message;
     }
@@ -105,10 +119,41 @@ const deleteClient = async (clientId) => {
     }
 }
 
+const login = async (clientData) => {
+    try {
+        let pool = await sql.connect(config.sql);
+        const query = `SELECT * FROM TB_CLIENT_INFO
+            WHERE EMAIL=@email`;
+
+        const client = await pool.request()
+            .input('email', sql.NVarChar(50), clientData.email)
+            .query(query);
+        
+        if (client.recordset.length) {
+            const vPass = await bcrypt.compare(clientData.password, client.recordset[0].PASSWORD);
+            const vEmail = client.recordset[0].EMAIL === clientData.email;
+
+            if (vPass && vEmail) {
+                return 'login successfully';
+            } else {
+                throw new Error('Credenciais Invalidas!');
+            }
+        } else {
+            throw new Error('Email nao cadastrado!');
+        }
+
+    } catch(err) {
+        return err.message;
+    }
+}
+
+
+
 module.exports = {
     getAllClients,
     getById,
     createClient,
     updateClient,
-    deleteClient
+    deleteClient,
+    login
 }
