@@ -57,8 +57,6 @@ const createClient = async (clientdata) => {
 
             const hashedPassword = await bcrypt.hash(clientdata.password, 10);
 
-            console.log(hashedPassword);
-
             const insertclient = await pool.request()
                                 .input('firstName', sql.NVarChar(50), clientdata.firstName)
                                 .input('surname', sql.NVarChar(50), clientdata.surname)

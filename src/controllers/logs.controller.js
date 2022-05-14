@@ -2,8 +2,7 @@ const logData = require('../data/logs/index');
 
 async function addLog(data) {
     try {
-        const insert = await logData.createLog(data);
-        res.send(insert);
+        return await logData.createLog(data);
     } catch (error) {
         res.status(400).send(error.message);
     }

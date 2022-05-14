@@ -1,4 +1,4 @@
-import { addLog } from "../controllers/logs.controller";
+const log = require('../controllers/logs.controller');
 
 const clientData = require('../data/clients/index');
 
@@ -25,9 +25,9 @@ const addClient = async (req, res, next) => {
     try {
         const data = req.body;
         const insert = await clientData.createClient(data);
-        addLog({
-            idLog: `ADD_CLIENT_${data.cpf.toString().slice(0,3)}_${data.phoneNumber.toString().slice(-4)}`,
-            message: `Cliente ${data.fistName} adicionado`,
+        log.addLog({
+            idLog: `ADD_CLIENT_${data.cpf.toString().slice(0,3)}_${data.nrPhone.toString().slice(-4)}_${new Date().getTime()}`,
+            message: `Cliente ${data.firstName} adicionado`,
             type: 1,
             dateTime: new Date()
         });
@@ -42,9 +42,9 @@ const updateClient = async (req, res, next) => {
         const clientId =  req.params.id;
         const data = req.body;
         const updated = await clientData.updateClient(clientId, data);
-        addLog({
-            idLog: `UPDATE_CLIENT_${data.cpf.toString().slice(0,3)}_${data.phoneNumber.toString().slice(-4)}`,
-            message: `Cliente ${data.fistName} atualizado`,
+        log.addLog({
+            idLog: `UPDATE_CLIENT_${data.cpf.toString().slice(0,3)}_${data.nrPhone.toString().slice(-4)}_${new Date().getTime()}`,
+            message: `Cliente ${data.firstName} atualizado`,
             type: 2,
             dateTime: new Date()
         });
@@ -57,14 +57,19 @@ const updateClient = async (req, res, next) => {
 const deleteClient = async (req, res, next) => {
     try {
         const clientId = req.params.id;
-        const deletedClient = await clientData.deleteClient(clientId);
-        addLog({
-            idLog: `DELETE_CLIENT_${data.cpf.toString().slice(0,3)}_${data.phoneNumber.toString().slice(-4)}`,
-            message: `Cliente ${data.fistName} excluido`,
-            type: 3,
-            dateTime: new Date()
-        });
-        res.send(deletedClient);
+        const client = await clientData.getById(clientId);
+        if(client.length > 0) {
+            const data = client[0];
+            const deletedClient = await clientData.deleteClient(clientId);
+            log.addLog({
+                idLog: `DELETE_CLIENT_${data.CPF.toString().slice(0,3)}_${data.NR_PHONE.toString().slice(-4)}_${new Date().getTime()}`,
+                message: `Cliente ${client[0].FIRST_NAME} excluido`,
+                type: 3,
+                dateTime: new Date()
+            });
+            res.send(deletedClient);
+        }
+        
     } catch (error) {
         res.status(400).send(error.message);
     }
